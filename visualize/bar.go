@@ -52,6 +52,9 @@ func Bar(name string, s data.Set, x, y string) error {
 	}
 
 	width := windowWidth / font.Length(len(l)+1)
+	if width > 100 {
+		width = 100
+	}
 	bc, err := plotter.NewBarChart(v, width)
 	if err != nil {
 		return err
