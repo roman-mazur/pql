@@ -48,7 +48,7 @@ type Repl struct {
 	t   *term.Terminal
 
 	ctx map[string]*CmdCtx
-	s   []string
+	s   []string // Context stack.
 	fs  []string // First commands to execute.
 }
 
@@ -110,6 +110,10 @@ func (r *Repl) Switch(name string) {
 			Name:    name,
 		}
 	}
+}
+
+func (r *Repl) Msg(s string) {
+	_, _ = fmt.Fprintln(r.out(), s)
 }
 
 func (r *Repl) MsgErr(err error) {

@@ -37,7 +37,7 @@ func (tc tableCmd) Perform(repl *Repl) {
 	if limit == 0 {
 		limit = 5
 	}
-	err := visualize.Table(cc.S, limit)
+	err := visualize.Table(cc.S, limit, repl.out())
 	if err != nil {
 		repl.MsgErr(err)
 	}

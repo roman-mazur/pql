@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"image/color"
 	"math"
 	"os"
@@ -28,7 +27,7 @@ func repl(init Command) {
 
 	go func() {
 		<-interrupt
-		fmt.Println("Bye!")
+		repl.Msg("Bye!")
 		for repl.CurrentCtx() != nil { // TODO: It's a race with the main REPL loop.
 			repl.FinishCtx()
 		}

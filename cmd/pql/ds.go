@@ -34,7 +34,7 @@ func (c *connectCmd) Perform(repl *Repl) {
 		return
 	}
 	repl.CurrentCtx().Ds = ds
-	fmt.Println("Connected with", c.Driver)
+	repl.Msg("Connected with " + c.Driver)
 }
 
 type queryCmd string

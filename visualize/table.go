@@ -2,13 +2,14 @@ package visualize
 
 import (
 	"fmt"
+	"io"
 
 	"rmazur.io/pql/data"
 )
 
-func Table(ds data.Set, limit int) error {
+func Table(ds data.Set, limit int, out io.Writer) error {
 	if rs, reusable := ds.(data.ReusableSet); reusable {
-		fmt.Println("COUNT:", rs.Count())
+		_, _ = fmt.Fprintln(out, "COUNT:", rs.Count())
 	}
 
 	cols, err := ds.Columns()
@@ -23,27 +24,27 @@ func Table(ds data.Set, limit int) error {
 		holder[i] = cols[i]
 		row[i] = &holder[i]
 	}
-	printRow(row) // Print the header.
+	printRow(out, row) // Print the header.
 
 	for i := 0; i < limit && ds.Next(); i++ {
 		if err := ds.Scan(row...); err != nil {
 			return err
 		}
-		printRow(row)
+		printRow(out, row)
 	}
 	return nil
 }
 
-func printRow(values []interface{}) {
+func printRow(out io.Writer, values []interface{}) {
 	for i, v := range values {
 		if s, ok := v.(*string); ok {
-			fmt.Print(*s)
+			_, _ = fmt.Fprint(out, *s)
 		} else {
-			fmt.Printf("%v", v)
+			_, _ = fmt.Fprintf(out, "%v", v)
 		}
 		if i != len(values)-1 {
-			fmt.Print("\t")
+			_, _ = fmt.Fprint(out, "\t")
 		}
 	}
-	fmt.Println()
+	_, _ = fmt.Fprintln(out)
 }
