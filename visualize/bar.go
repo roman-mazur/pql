@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/font"
 	"gonum.org/v1/plot/plotter"
 	"rmazur.io/pql/data"
 )
@@ -49,16 +50,31 @@ func Bar(name string, s data.Set, x, y string) error {
 	if err != nil {
 		return err
 	}
-	bc, err := plotter.NewBarChart(v, windowWidth)
+
+	width := windowWidth / font.Length(len(l)+1)
+	bc, err := plotter.NewBarChart(v, width)
 	if err != nil {
 		return err
 	}
-
 	p := plot.New()
-	p.X.Label.Text = "X"
-	p.Y.Label.Text = "Y"
+
+	lx, ly := x, y
+	if lx == "" {
+		lx = "X"
+	}
+	if ly == "" {
+		ly = "Y"
+	}
+	p.X.Label.Text = lx
+	p.Y.Label.Text = ly
+	const labelSize = windowWidth / 30
+	p.X.Label.TextStyle.Font.Size = labelSize
+	p.Y.Label.TextStyle.Font.Size = labelSize
+
 	p.Add(bc, plotter.NewGrid())
 	p.NominalX(l...)
+	p.X.Tick.Label.Font.Size = p.X.Label.TextStyle.Font.Size * 0.66
+	p.Y.Tick.Label.Font.Size = p.Y.Label.TextStyle.Font.Size * 0.66
 
 	display(name, p)
 	return nil

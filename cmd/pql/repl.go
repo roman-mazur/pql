@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	"rmazur.io/pql/data"
@@ -45,11 +46,13 @@ type Repl struct {
 
 	ctx map[string]*CmdCtx
 	s   []string
+	fs  []string // First commands to execute.
 }
 
-func NewRepl() *Repl {
+func NewRepl(cmds ...string) *Repl {
 	return &Repl{
 		ctx: make(map[string]*CmdCtx),
+		fs:  cmds,
 	}
 }
 
@@ -124,6 +127,11 @@ func (r *Repl) prompt() {
 }
 
 func (r *Repl) read() (string, error) {
+	if len(r.fs) > 0 {
+		res := r.fs[0]
+		r.fs = r.fs[1:]
+		return res, nil
+	}
 	return r.in().ReadString('\n')
 }
 
@@ -184,6 +192,14 @@ func makeCmd(word, line string) (cmd Command, err error) {
 			y = args[2]
 		}
 		cmd = &barCmd{X: x, Y: y}
+
+	case "table":
+		args := strings.Fields(line)
+		limit := 0
+		if len(args) > 1 {
+			limit, _ = strconv.Atoi(args[1])
+		}
+		cmd = tableCmd(limit)
 
 	default:
 		cmd = queryCmd(line)

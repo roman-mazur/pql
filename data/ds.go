@@ -23,6 +23,14 @@ type Set interface {
 	Close() error
 }
 
+type ReusableSet interface {
+	Set
+
+	reusable()
+	Count() int
+	Reset()
+}
+
 func OpenSQL(driver, conn string) (Source, error) {
 	db, err := sql.Open(driver, conn)
 	if err != nil {

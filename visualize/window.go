@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	windowWidth = 15 * vg.Centimeter
+	windowWidth = 30 * vg.Centimeter
 	dpi         = 96
 )
 

@@ -2,9 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"image/color"
 	"math"
 	"os"
+	"os/signal"
 
 	"gioui.org/app"
 	"gioui.org/io/system"
@@ -19,7 +21,20 @@ import (
 )
 
 func repl(init Command) {
-	repl := NewRepl()
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+
+	repl := NewRepl("select * from testdata")
+
+	go func() {
+		<-interrupt
+		fmt.Println("Bye!")
+		for repl.CurrentCtx() != nil { // TODO: It's a race with the main REPL loop.
+			repl.FinishCtx()
+		}
+		os.Exit(0)
+	}()
+
 	for cmd := init; cmd != nil; cmd = repl.next() {
 		cmd.Perform(repl)
 	}
@@ -36,11 +51,18 @@ func (cl cmdList) Perform(repl *Repl) {
 
 func main() {
 	postgresIn := flag.String("postgres", "", "connection string for a Postgres db")
+	osqueryIn := flag.String("osquery", "", "osqueryd extensions socket path")
 	flag.Parse()
 
 	init := cmdList{switchCmd("$")}
 	if *postgresIn != "" {
 		init = append(init, &connectCmd{Driver: "postgres", ConnStr: *postgresIn})
+	} else if *osqueryIn != "" {
+		path := *osqueryIn
+		if path == "-" {
+			path = "/var/osquery/osquery.em"
+		}
+		init = append(init, &connectCmd{Driver: "osquery", ConnStr: path})
 	}
 
 	go repl(init)

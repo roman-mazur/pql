@@ -12,31 +12,50 @@ type barCmd struct {
 }
 
 func (bc *barCmd) Perform(repl *Repl) {
-	cc := repl.CurrentCtx()
-	if cc.S == nil {
-		repl.MsgErr(fmt.Errorf("no data in the current context"))
-		return
-	}
-
-	if err := bc.persist(cc); err != nil {
+	if err := persistDs(repl, bc.X, bc.Y); err != nil {
 		repl.MsgErr(err)
 		return
 	}
 
+	cc := repl.CurrentCtx()
 	err := visualize.Bar(cc.Name, cc.S, bc.X, bc.Y)
 	if err != nil {
 		repl.MsgErr(err)
 	}
 }
 
-func (bc *barCmd) persist(cc *CmdCtx) error {
-	cv, ok := cc.S.(*data.ChartedValues)
+type tableCmd int
+
+func (tc tableCmd) Perform(repl *Repl) {
+	if err := persistDs(repl, "", ""); err != nil {
+		repl.MsgErr(err)
+		return
+	}
+
+	cc := repl.CurrentCtx()
+	limit := int(tc)
+	if limit == 0 {
+		limit = 5
+	}
+	err := visualize.Table(cc.S, limit)
+	if err != nil {
+		repl.MsgErr(err)
+	}
+}
+
+func persistDs(repl *Repl, x, y string) error {
+	cc := repl.CurrentCtx()
+	if cc.S == nil {
+		return fmt.Errorf("no data in the current context")
+	}
+
+	cv, ok := cc.S.(data.ReusableSet)
 	if !ok {
 		col, err := cc.S.Columns()
 		if err != nil {
 			return err
 		}
-		vi, li := data.Indexes(col, bc.X, bc.Y)
+		vi, li := data.Indexes(col, x, y)
 		cv, err = data.ReadAll(cc.S, vi, li)
 		if err != nil {
 			return err

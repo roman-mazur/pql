@@ -17,7 +17,16 @@ func (c *connectCmd) Perform(repl *Repl) {
 		switchCmd("$" + cc.Name).Perform(repl)
 	}
 
-	ds, err := data.OpenSQL(c.Driver, c.ConnStr)
+	var (
+		ds  data.Source
+		err error
+	)
+	if c.Driver == "osquery" {
+		ds, err = data.NewOsQuerySource(c.ConnStr)
+	} else {
+		ds, err = data.OpenSQL(c.Driver, c.ConnStr)
+	}
+
 	if err != nil {
 		repl.MsgErr(err)
 		return
