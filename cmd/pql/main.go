@@ -23,7 +23,7 @@ func repl(init Command) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	repl := NewRepl("select * from testdata")
+	repl := NewRepl()
 
 	go func() {
 		<-interrupt
@@ -66,11 +66,15 @@ func main() {
 
 	go repl(init)
 
+	//doTest()
+
+	app.Main()
+}
+
+func doTest() {
 	win := app.NewWindow(app.Title("test"), app.Size(unit.Px(400), unit.Px(400)))
 	defer win.Close()
 	go loop(win)
-
-	app.Main()
 }
 
 func loop(w *app.Window) error {
