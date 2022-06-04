@@ -53,7 +53,7 @@ func (oqs *OsQuerySource) Query(ctx context.Context, query string) (rs Set, err 
 		return nil, err
 	}
 	if colResp.Status == nil || colResp.Status.Code != 0 {
-		return nil, fmt.Errorf("unable to query columns: %v", colResp.Status)
+		return nil, fmt.Errorf("unable to query columns: %v; sql=[%s]", colResp.Status, query)
 	}
 
 	rows, err := oqs.osq.QueryRows(query)

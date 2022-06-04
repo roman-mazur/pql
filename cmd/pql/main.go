@@ -24,7 +24,7 @@ func repl(init Command) {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	repl := NewRepl("select * from testdata")
+	repl := NewRepl()
 
 	go func() {
 		<-interrupt
