@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"rmazur.io/pql/data"
+
+	_ "github.com/lib/pq" // Postgres driver import.
 )
 
 type connectCmd struct {

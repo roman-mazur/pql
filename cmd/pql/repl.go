@@ -5,10 +5,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 
+	"golang.org/x/term"
 	"rmazur.io/pql/data"
 )
 
@@ -43,6 +45,7 @@ type Repl struct {
 	output io.Writer
 
 	bin *bufio.Reader
+	t   *term.Terminal
 
 	ctx map[string]*CmdCtx
 	s   []string
@@ -58,21 +61,28 @@ func NewRepl(cmds ...string) *Repl {
 
 func (r *Repl) out() io.Writer {
 	if r.output == nil {
+		if r.t != nil {
+			return r.t
+		}
 		return os.Stdout
 	}
 	return r.output
 }
 
 func (r *Repl) in() *bufio.Reader {
-	if r.bin != nil {
-		return r.bin
+	if r.input == nil {
+		if r.t == nil {
+			_, err := term.MakeRaw(int(os.Stdin.Fd()))
+			if err == nil {
+				r.t = term.NewTerminal(os.Stdin, "")
+			} else {
+				log.Println("Failed to switch to a raw terminal mode:", err)
+				r.bin = bufio.NewReaderSize(os.Stdin, 2)
+			}
+		}
+	} else if r.bin == nil {
+		r.bin = bufio.NewReaderSize(r.input, 256)
 	}
-
-	in := r.input
-	if in == nil {
-		in = os.Stdin
-	}
-	r.bin = bufio.NewReaderSize(in, 2)
 	return r.bin
 }
 
@@ -132,7 +142,16 @@ func (r *Repl) read() (string, error) {
 		r.fs = r.fs[1:]
 		return res, nil
 	}
-	return r.in().ReadString('\n')
+
+	if bin := r.in(); bin != nil {
+		return bin.ReadString('\n')
+	}
+
+	// Working with a terminal.
+	if r.t == nil {
+		panic("invalid state: terminal is not initialized")
+	}
+	return r.t.ReadLine()
 }
 
 func (r *Repl) next() Command {
